@@ -6,6 +6,7 @@ import { MemoryDetectionProbes, type ProbeError } from "../probes.js";
 const files = {
   "/home/user/.config/opencode/config.json": { readable: true },
   "/home/user/.claude/settings.json": { readable: true },
+  "/home/user/.codex/config.toml": { readable: true },
   "/home/user/.pi/config.json": { readable: true },
 };
 
@@ -16,11 +17,13 @@ describe("harness detection", () => {
       binaries: {
         opencode: "/bin/opencode",
         claude: "/bin/claude",
+        codex: "/bin/codex",
         pi: "/bin/pi",
       },
       versions: {
         opencode: "opencode 1.0.0",
         claude: "claude 2.0.0",
+        codex: "codex 3.0.0",
         pi: "pi 3.0.0",
       },
     });
@@ -28,6 +31,7 @@ describe("harness detection", () => {
     expect(result._unsafeUnwrap().map((harness) => harness.id)).toEqual([
       "opencode",
       "claude-code",
+      "codex",
       "pi",
     ]);
   });

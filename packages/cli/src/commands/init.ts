@@ -938,7 +938,12 @@ function renderConversionWarnings(warnings: ConversionWarning[]): string {
 
 // ---------------------------------------------------------------------------
 
-const HARNESS_IDS: SupportedHarnessId[] = ["opencode", "claude-code", "pi"];
+const HARNESS_IDS: SupportedHarnessId[] = [
+  "opencode",
+  "claude-code",
+  "codex",
+  "pi",
+];
 
 export async function runInit(
   ctx: InitContext,
@@ -1766,6 +1771,7 @@ async function installHarnesses(input: {
       configPath: detected.configPath,
       selectedModules: plan.selectedModules[harnessId] ?? [],
       force: ctx.flags.force,
+      codexGlobal: ctx.flags.codexGlobal === true,
     });
     if (result.isErr()) {
       ctx.terminal.stderr(formatInstallError(result.error));

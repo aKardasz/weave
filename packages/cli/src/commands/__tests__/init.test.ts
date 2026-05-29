@@ -23,6 +23,8 @@ function flags(
     allHarnesses: false,
     project: false,
     global: false,
+    codexGlobal: false,
+    keepTemp: false,
     ...overrides,
   };
 }

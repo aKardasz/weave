@@ -1,0 +1,14 @@
+// weave-managed
+{
+  "plugins": [
+    {
+      "id": "weave-codex",
+      "name": "Weave Codex",
+      "path": "./plugins/weave-codex",
+      "category": "workflow",
+      "installation": "local",
+      "authentication": "none",
+      "description": "Repo-local Weave workflows and generated Codex agent support."
+    }
+  ]
+}

@@ -16,6 +16,12 @@ export type { CliDeps } from "./cli.js";
 // CLI router
 // ---------------------------------------------------------------------------
 export { run } from "./cli.js";
+export type {
+  CodexContext,
+  CodexSmokeError,
+  CodexSmokeResult,
+} from "./commands/codex.js";
+export { runCodex, runCodexSmoke } from "./commands/codex.js";
 
 // ---------------------------------------------------------------------------
 // Error types

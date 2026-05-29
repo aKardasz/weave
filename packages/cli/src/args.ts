@@ -19,6 +19,7 @@ export type Command =
   | "validate"
   | "run"
   | "runtime"
+  | "codex"
   | "unknown";
 
 export interface ParsedArgs {
@@ -50,8 +51,14 @@ export interface ParsedArgs {
     global: boolean;
     /** --limit <n> for runtime journal */
     limit?: number;
+    /** --codex-global opt-in for Codex home config/plugin mutation */
+    codexGlobal?: boolean;
+    /** --keep-temp for codex smoke */
+    keepTemp?: boolean;
     /** runtime subcommand: status | journal */
     runtimeSubcommand?: "status" | "journal";
+    /** codex subcommand: smoke */
+    codexSubcommand?: "smoke";
     /**
      * init submode: "migrate" when `weave init migrate` is invoked.
      * Undefined for ordinary `weave init`.
@@ -93,6 +100,8 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
     allHarnesses: false,
     project: false,
     global: false,
+    codexGlobal: false,
+    keepTemp: false,
   };
 
   let command: Command | undefined;
@@ -133,6 +142,14 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
     }
     if (arg === "--global") {
       flags.global = true;
+      continue;
+    }
+    if (arg === "--codex-global") {
+      flags.codexGlobal = true;
+      continue;
+    }
+    if (arg === "--keep-temp") {
+      flags.keepTemp = true;
       continue;
     }
 
@@ -227,6 +244,9 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
         case "runtime":
           command = "runtime";
           break;
+        case "codex":
+          command = "codex";
+          break;
         default:
           command = "unknown";
           unknownCommand = arg;
@@ -247,6 +267,14 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
     if (command === "runtime" && flags.runtimeSubcommand === undefined) {
       if (arg === "status" || arg === "journal") {
         flags.runtimeSubcommand = arg;
+        continue;
+      }
+    }
+
+    // codex subcommands: smoke
+    if (command === "codex" && flags.codexSubcommand === undefined) {
+      if (arg === "smoke") {
+        flags.codexSubcommand = arg;
         continue;
       }
     }

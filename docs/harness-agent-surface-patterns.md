@@ -143,16 +143,20 @@ session, then substantial plan execution happens in a Tapestry-shaped session.
 ### Codex
 
 - Best understood as **one main coordinator** plus explicit subagent workflows.
-- Custom agents exist, but the public model emphasizes spawned subagents rather
-  than many co-equal visible primaries.
+- Custom agents exist as standalone `.codex/agents/*.toml` files, while plugins
+  bundle reusable skills, hooks, MCP servers, apps, and assets.
+- The public model emphasizes spawned subagents rather than many co-equal
+  visible primaries.
 
 **Recommended Weave mapping:**
 
-- one visible main Weave coordinator prompt
-- internal modes: direct, plan, execute
-- spawned specialists for exploration/review/audit/implementation slices
+- generated Weave specialists → Codex custom agents
+- `$weave` coordination entrypoint → repo-local Codex plugin skill
+- hook/MCP/app load validation → generated smoke plugin surfaces
+- live workflow persistence/dispatch → deferred beyond smoke stubs
 
-This suggests a composite main prompt rather than two visible primary agents.
+This suggests project materialization plus a narrow live smoke layer first, not
+OpenCode-style runtime parity.
 
 ### Kiro
 

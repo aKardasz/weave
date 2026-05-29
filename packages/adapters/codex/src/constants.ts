@@ -1,0 +1,9 @@
+export const CODEX_ADAPTER_ID = "codex";
+export const WEAVE_CODEX_PLUGIN_NAME = "weave-codex";
+export const WEAVE_CODEX_SKILL_NAME = "weave";
+export const WEAVE_MANAGED_MARKER = "weave-managed";
+export const WEAVE_GENERATED_BY = "@weave/adapter-codex";
+export const CODEX_PLUGIN_RELATIVE_PATH = "plugins/weave-codex";
+export const CODEX_MARKETPLACE_PATH = ".agents/plugins/marketplace.json";
+export const CODEX_SMOKE_MCP_SERVER_NAME = "weave-smoke";
+export const CODEX_SMOKE_MCP_TOOL_NAME = "weave_smoke";

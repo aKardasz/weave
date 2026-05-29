@@ -1,0 +1,14 @@
+// weave-managed
+{
+  "name": "weave-codex",
+  "version": "0.0.1",
+  "description": "Repo-local Weave workflows and adapter affordances for Codex.",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "apps": "./.app.json",
+  "hooks": "./hooks/hooks.json",
+  "metadata": {
+    "generatedBy": "@weave/adapter-codex",
+    "ownership": "weave-managed"
+  }
+}

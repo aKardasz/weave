@@ -1,0 +1,31 @@
+// weave-managed
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run ${PLUGIN_ROOT}/hooks/weave-smoke-hook.ts",
+            "statusMessage": "Recording Weave smoke hook"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bun run ${PLUGIN_ROOT}/hooks/weave-smoke-hook.ts",
+            "statusMessage": "Recording Weave prompt smoke hook"
+          }
+        ]
+      }
+    ]
+  },
+  "metadata": {
+    "generatedBy": "@weave/adapter-codex",
+    "ownership": "weave-managed"
+  }
+}

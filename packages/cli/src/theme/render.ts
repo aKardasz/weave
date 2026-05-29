@@ -34,6 +34,7 @@ export class ThemeRenderer {
       `    ${theme.cyan("validate")}               ${theme.dim("Validate .weave configuration files")}`,
       `    ${theme.cyan("runtime status")}         ${theme.dim("Show runtime store status")}`,
       `    ${theme.cyan("runtime journal")}        ${theme.dim("Show recent journal entries (--limit <n>)")}`,
+      `    ${theme.cyan("codex smoke")}            ${theme.dim("Run isolated Codex plugin runtime smoke test")}`,
       "",
       `  ${theme.boldCyan("OPTIONS")}`,
       "",
@@ -46,6 +47,8 @@ export class ThemeRenderer {
       `    ${theme.cyan("--global")}            ${theme.dim("Validate ~/.weave/config.weave")}`,
       `    ${theme.cyan("--json")}             ${theme.dim("Emit machine-readable validation output")}`,
       `    ${theme.cyan("--yes, -y")}          ${theme.dim("Accept safe non-interactive defaults")}`,
+      `    ${theme.cyan("--codex-global")}     ${theme.dim("Opt in to Codex home plugin/config mutation")}`,
+      `    ${theme.cyan("--keep-temp")}        ${theme.dim("Keep codex smoke temporary repo")}`,
       "",
       `  ${theme.boldCyan("EXAMPLES")}`,
       "",
@@ -53,6 +56,7 @@ export class ThemeRenderer {
       `    ${theme.dim("$")} weave init --scope global --yes   ${theme.dim("# Non-interactive global setup")}`,
       `    ${theme.dim("$")} weave validate --project          ${theme.dim("# Validate project config")}`,
       `    ${theme.dim("$")} weave validate --path my.weave    ${theme.dim("# Validate a specific file")}`,
+      `    ${theme.dim("$")} weave codex smoke --codex-global  ${theme.dim("# Live Codex plugin smoke test")}`,
       "",
     ];
   }

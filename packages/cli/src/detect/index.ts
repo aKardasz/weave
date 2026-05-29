@@ -5,7 +5,7 @@ import {
   type ProbeError,
 } from "./probes.js";
 
-export type SupportedHarnessId = "opencode" | "claude-code" | "pi";
+export type SupportedHarnessId = "opencode" | "claude-code" | "codex" | "pi";
 
 export type DetectedHarness = {
   id: SupportedHarnessId;
@@ -35,6 +35,11 @@ const HARNESS_PROBES: HarnessProbe[] = [
     id: "claude-code",
     configPath: "~/.claude/settings.json",
     binary: "claude",
+  },
+  {
+    id: "codex",
+    configPath: "~/.codex/config.toml",
+    binary: "codex",
   },
   { id: "pi", configPath: "~/.pi/config.json", binary: "pi" },
 ];

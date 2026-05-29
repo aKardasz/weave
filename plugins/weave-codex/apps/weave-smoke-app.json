@@ -1,0 +1,11 @@
+// weave-managed
+{
+  "name": "weave-smoke",
+  "displayName": "Weave Smoke",
+  "description": "Static app metadata proving the Weave Codex plugin app surface is packaged.",
+  "metadata": {
+    "generatedBy": "@weave/adapter-codex",
+    "ownership": "weave-managed",
+    "plugin": "weave-codex"
+  }
+}

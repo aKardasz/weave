@@ -153,6 +153,19 @@ function projectOnlyReader(root: string) {
   };
 }
 
+function unreadableConfigReader(projectRoot: string) {
+  return {
+    exists: async (path: string): Promise<boolean> =>
+      path === join(projectRoot, ".weave", "config.weave"),
+    read: (path: string) => {
+      return ResultAsync.fromPromise(
+        Promise.reject(new Error("not found")),
+        (cause: unknown) => ({ type: "FileReadError" as const, path, cause }),
+      );
+    },
+  };
+}
+
 /**
  * Helper: simulate a `session.created` event via the `event` hook.
  */
@@ -236,12 +249,15 @@ describe("WeavePlugin — PluginModule compatibility", () => {
 // ---------------------------------------------------------------------------
 
 describe("WeavePlugin — config load failure", () => {
-  it("returns empty Hooks when directory has no .weave/config.weave", async () => {
-    // Use a non-existent directory — loadConfig will fail to find any config
+  it("returns empty Hooks when config exists but cannot be read", async () => {
+    const directory = "/nonexistent-weave-test-dir";
     const client = new MockOpenCodeClient();
-    const input = makeMockPluginInput("/nonexistent-weave-test-dir", client);
+    const plugin = createWeavePlugin({
+      fileReader: unreadableConfigReader(directory),
+    });
+    const input = makeMockPluginInput(directory, client);
 
-    const hooks = await WeavePlugin(input);
+    const hooks = await plugin(input);
 
     // Plugin must not throw — it returns {} and logs the error
     expect(hooks).toEqual({});
@@ -251,13 +267,14 @@ describe("WeavePlugin — config load failure", () => {
   });
 
   it("returns no config hook when config load fails", async () => {
+    const directory = "/nonexistent-weave-test-dir-fail";
     const client = new MockOpenCodeClient();
-    const input = makeMockPluginInput(
-      "/nonexistent-weave-test-dir-fail",
-      client,
-    );
+    const plugin = createWeavePlugin({
+      fileReader: unreadableConfigReader(directory),
+    });
+    const input = makeMockPluginInput(directory, client);
 
-    const hooks = await WeavePlugin(input);
+    const hooks = await plugin(input);
 
     // On failure, no config hook is registered
     expect(hooks.config).toBeUndefined();

@@ -156,6 +156,38 @@ for the normative spec.
 
 ---
 
+## Codex Adapter — First-Slice Materialization
+
+`@weave/adapter-codex` is a project-local materialization adapter with runtime
+smoke stubs. It writes the Codex files that Codex already knows how to load:
+
+- `.codex/agents/*.toml` for custom agents generated from Weave descriptors.
+- `plugins/weave-codex/` for the repo-local plugin bundle.
+- `.agents/plugins/marketplace.json` for the repo-local marketplace entry.
+
+Codex plugins are the distribution surface for reusable skills, hooks, MCP
+servers, apps, and assets. Codex custom agents remain standalone TOML files, so
+the adapter keeps agents and plugin workflow affordances separate.
+
+### What is implemented
+
+| Capability | Status | Notes |
+| --- | --- | --- |
+| Agent TOML materialization | ✅ | `AgentDescriptor.composedPrompt` becomes Codex `developer_instructions` |
+| Repo-local plugin generation | ✅ | Generates `plugins/weave-codex` with a `$weave` skill |
+| Hook/MCP/app smoke files | ✅ | Generated plugin can prove Codex loads hooks, `weave_smoke`, and app metadata |
+| Marketplace merge | ✅ | Preserves unrelated entries in `.agents/plugins/marketplace.json` |
+| Ownership protection | ✅ | Generated files use `weave-managed`; foreign files fail closed |
+| CLI detection/installer | ✅ | `codex` is a supported detected harness and installer target |
+| Global enablement | ✅ | Explicit `--codex-global`; backup-first home config update |
+| Live smoke command | ✅ | `weave codex smoke`; blocked locally if Codex optional dependency is missing |
+| Workflow runtime parity | ❌ | Deferred; smoke stubs do not persist or dispatch Weave workflow steps |
+
+See [Codex Adapter](codex-adapter.md), [ADR 0004](adr/0004-codex-adapter-materialization-shape.md),
+and [Spec 22](specs/22-spec-codex-adapter-materialization/22-spec-codex-adapter-materialization.md).
+
+---
+
 ## SDK Version Pin
 
 The OpenCode adapter (`@weave/adapter-opencode`) pins `@opencode-ai/sdk` at

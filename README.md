@@ -17,6 +17,7 @@ For a high-level flow diagram of configuration → engine → adapter → harnes
 | [`@weave/engine`](./packages/engine)                            | Pure composition APIs for descriptors, model intent, skill resolution, prompts, and policy |
 | [`@weave/cli`](./packages/cli)                                  | `weave` executable for config scaffolding, validation, and harness installation            |
 | [`@weave/adapter-opencode`](./packages/adapters/opencode)       | OpenCode plugin adapter                                                                    |
+| [`@weave/adapter-codex`](./packages/adapters/codex)             | Codex project materialization adapter                                                      |
 | [`@weave/adapter-claude-code`](./packages/adapters/claude-code) | Claude Code adapter                                                                        |
 | [`@weave/adapter-pi`](./packages/adapters/pi)                   | Pi adapter                                                                                 |
 
@@ -80,6 +81,18 @@ In practice, the current OpenCode adapter covers the **materialization foundatio
 
 ## Other Adapter Status
 
+### Codex adapter
+
+`@weave/adapter-codex` is implemented as a **first-slice Codex materialization adapter with runtime smoke stubs**. It writes Weave agents as Codex custom agent TOML files, generates a repo-local `plugins/weave-codex` plugin with a `$weave` skill plus hook/MCP/app smoke files, and updates `.agents/plugins/marketplace.json`.
+
+Default installation is repo-local. `--codex-global` is the explicit opt-in for mutating `~/.codex` and `~/.agents/plugins`, and `weave codex smoke` can run an isolated live smoke test. The smoke stubs prove Codex can load generated hooks, MCP, and app metadata; they do not yet provide Weave workflow persistence, workflow step dispatch, event logging, token usage reporting, or public plugin publishing.
+
+- current role: project-local Codex materializer
+- generated agents: `.codex/agents/*.toml`
+- generated plugin: `plugins/weave-codex/`
+- smoke command: `bun packages/cli/src/main.ts codex smoke --codex-global`
+- docs: [Codex Adapter](./docs/codex-adapter.md), [ADR 0004](./docs/adr/0004-codex-adapter-materialization-shape.md), [Spec 22](./docs/specs/22-spec-codex-adapter-materialization/22-spec-codex-adapter-materialization.md)
+
 ### Claude Code adapter
 
 `@weave/adapter-claude-code` currently exists as a package placeholder in the workspace. The harness-agnostic engine/config surfaces it depends on are present, but this adapter does not yet have an equivalent status story to the OpenCode first slice.
@@ -106,6 +119,7 @@ weave/
 │   ├── engine/                # Harness-agnostic composition APIs and adapter boundary
 │   └── adapters/
 │       ├── opencode/          # OpenCode plugin adapter
+│       ├── codex/             # Codex project materialization adapter
 │       ├── pi/                # Pi adapter
 │       └── claude-code/       # Claude Code adapter
 ├── package.json               # Root workspace manifest

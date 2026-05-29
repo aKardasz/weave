@@ -131,6 +131,16 @@ export async function run(
       });
     }
 
+    case "codex": {
+      const { runCodex } = await import("./commands/codex.js");
+      return runCodex({
+        terminal,
+        theme,
+        flags,
+        subcommand: flags.codexSubcommand,
+      });
+    }
+
     case "unknown": {
       const errMsg = formatCliError({
         type: "UnknownCommand",

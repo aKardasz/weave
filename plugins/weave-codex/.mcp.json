@@ -1,0 +1,19 @@
+// weave-managed
+{
+  "mcp_servers": {
+    "weave-smoke": {
+      "command": "bun",
+      "args": [
+        "run",
+        "${PLUGIN_ROOT}/mcp/weave-smoke-mcp.ts"
+      ],
+      "env": {
+        "WEAVE_CODEX_SMOKE_PLUGIN": "weave-codex"
+      }
+    }
+  },
+  "metadata": {
+    "generatedBy": "@weave/adapter-codex",
+    "ownership": "weave-managed"
+  }
+}

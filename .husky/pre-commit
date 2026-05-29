@@ -1,12 +1,12 @@
-#!/usr/bin/env bash
-set -euo pipefail
+#!/usr/bin/env sh
+set -eu
 
 echo "▶ codesight..."
-npx codesight
+bunx --bun codesight
 git add .codesight/
 
 echo "▶ lint-staged..."
-bunx lint-staged
+bunx --bun --no-install lint-staged
 
 echo "▶ typecheck..."
 bun run typecheck
