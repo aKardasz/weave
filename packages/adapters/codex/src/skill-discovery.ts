@@ -40,24 +40,26 @@ function defaultSkillFiles(
 ): string[] {
   const root = fs.resolvePath(projectRoot ?? fs.cwd());
   return [
-    join(root, ".agents/skills/weave/SKILL.md"),
-    join(dirname(root), ".agents/skills/weave/SKILL.md"),
-    join(fs.home(), ".agents/skills/weave/SKILL.md"),
-    "/etc/codex/skills/weave/SKILL.md",
+    join(root, ".agents/skills"),
+    join(root, ".codex/skills"),
+    join(root, "plugins/weave-codex/skills"),
+    join(dirname(root), ".agents/skills"),
+    join(dirname(root), ".codex/skills"),
+    join(fs.home(), ".agents/skills"),
+    join(fs.home(), ".codex/skills"),
+    join(fs.home(), "plugins/weave-codex/skills"),
+    "/etc/codex/skills",
   ];
 }
 
 async function discover(
   fs: CodexFileSystem,
-  files: string[],
+  paths: string[],
 ): Promise<SkillInfo[]> {
   const skills: SkillInfo[] = [];
+  const files = await discoverSkillFiles(fs, paths);
 
   for (const file of files) {
-    const exists = await fs.exists(file);
-    if (exists.isErr()) throw skillDiscoveryError(file, exists.error);
-    if (!exists.value) continue;
-
     const content = await fs.readText(file);
     if (content.isErr()) throw skillDiscoveryError(file, content.error);
 
@@ -72,6 +74,41 @@ async function discover(
   }
 
   return skills;
+}
+
+async function discoverSkillFiles(
+  fs: CodexFileSystem,
+  paths: string[],
+): Promise<string[]> {
+  const files: string[] = [];
+
+  for (const path of paths) {
+    const resolved = fs.resolvePath(path);
+    if (basename(resolved) === "SKILL.md") {
+      const exists = await fs.exists(resolved);
+      if (exists.isErr()) throw skillDiscoveryError(resolved, exists.error);
+      if (exists.value) files.push(resolved);
+      continue;
+    }
+
+    const listed = await fs.listFiles(resolved);
+    if (listed.isErr()) {
+      if (isMissingSkillRoot(listed.error)) continue;
+      throw skillDiscoveryError(resolved, listed.error);
+    }
+
+    for (const file of listed.value) {
+      if (basename(file) === "SKILL.md") files.push(fs.resolvePath(file));
+    }
+  }
+
+  return files;
+}
+
+function isMissingSkillRoot(error: CodexFileSystemError): boolean {
+  if (error.cause.kind === "MissingFile") return true;
+  if (error.operation !== "list") return false;
+  return error.cause.message.includes("ENOENT");
 }
 
 function parseSkillName(content: string): string | undefined {

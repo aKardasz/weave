@@ -56,15 +56,15 @@ export function buildCodexCapabilityContract(): AdapterCapabilityContract {
       ),
       capability(
         "workflow-persistence",
-        "unsupported",
-        "No live workflow runtime",
-        "The first slice does not implement Codex workflow persistence hooks.",
+        "emulated",
+        "Weave Runtime Store persistence",
+        "runCodexWorkflow drives engine lifecycle state through the shared Runtime Store; Codex native sessions are not event-sourced.",
       ),
       capability(
         "workflow-step-dispatch",
-        "unsupported",
-        "No live workflow dispatcher",
-        "The first slice does not dispatch workflow steps inside Codex.",
+        "native",
+        "Native Codex custom-agent execution",
+        "Codex workflow runs probe for a non-interactive custom-agent selector, then execute steps through codex exec --json with the target generated agent.",
       ),
       capability(
         "plan-file-compatibility",
@@ -80,15 +80,15 @@ export function buildCodexCapabilityContract(): AdapterCapabilityContract {
       ),
       capability(
         "event-logging",
-        "unsupported",
-        "No Codex event integration",
-        "The first slice does not observe Codex runtime events.",
+        "emulated",
+        "Sanitized Codex exec event metadata",
+        "Codex workflow runs parse JSON event streams and append sanitized event counts and usage summaries to the Runtime Journal; raw prompts and unrestricted stdout/stderr are not journaled.",
       ),
       capability(
         "token-usage-reporting",
-        "unsupported",
-        "No usage integration",
-        "No Codex usage reporting surface is wired in v1.",
+        "degraded",
+        "Best-effort Codex JSON usage events",
+        "Token usage is parsed from codex exec --json events when present; missing usage is represented as CodexUsageUnavailable rather than failing the step.",
       ),
       capability(
         "static-artifact-generation",

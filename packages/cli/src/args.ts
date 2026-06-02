@@ -55,10 +55,24 @@ export interface ParsedArgs {
     codexGlobal?: boolean;
     /** --keep-temp for codex smoke */
     keepTemp?: boolean;
+    /** --dry-run for codex install */
+    dryRun?: boolean;
+    /** --prune-generated for codex install */
+    pruneGenerated?: boolean;
+    /** --output <dir> for codex package-artifact */
+    output?: string;
+    /** --goal <text> for codex run-workflow */
+    goal?: string;
+    /** --slug <slug> for codex run-workflow */
+    slug?: string;
+    /** --max-steps <n> for codex run-workflow */
+    maxSteps?: number;
     /** runtime subcommand: status | journal */
     runtimeSubcommand?: "status" | "journal";
-    /** codex subcommand: smoke */
-    codexSubcommand?: "smoke";
+    /** codex subcommand: smoke | install | run-workflow | package-artifact */
+    codexSubcommand?: "smoke" | "install" | "run-workflow" | "package-artifact";
+    /** workflow name for codex run-workflow */
+    codexWorkflowName?: string;
     /**
      * init submode: "migrate" when `weave init migrate` is invoked.
      * Undefined for ordinary `weave init`.
@@ -102,6 +116,8 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
     global: false,
     codexGlobal: false,
     keepTemp: false,
+    dryRun: false,
+    pruneGenerated: false,
   };
 
   let command: Command | undefined;
@@ -150,6 +166,14 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
     }
     if (arg === "--keep-temp") {
       flags.keepTemp = true;
+      continue;
+    }
+    if (arg === "--dry-run") {
+      flags.dryRun = true;
+      continue;
+    }
+    if (arg === "--prune-generated") {
+      flags.pruneGenerated = true;
       continue;
     }
 
@@ -228,6 +252,66 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
       flags.limit = parsed;
       continue;
     }
+    if (arg === "--goal") {
+      const val = args[++i];
+      if (!val || val.startsWith("-")) {
+        return err({
+          type: "MissingFlagValue" as const,
+          flag: "--goal",
+          message: "--goal requires a workflow goal",
+        });
+      }
+      flags.goal = val;
+      continue;
+    }
+    if (arg === "--slug") {
+      const val = args[++i];
+      if (!val || val.startsWith("-")) {
+        return err({
+          type: "MissingFlagValue" as const,
+          flag: "--slug",
+          message: "--slug requires a slug value",
+        });
+      }
+      flags.slug = val;
+      continue;
+    }
+    if (arg === "--max-steps") {
+      const val = args[++i];
+      if (!val || val.startsWith("-")) {
+        return err({
+          type: "MissingFlagValue" as const,
+          flag: "--max-steps",
+          message: "--max-steps requires a positive integer",
+        });
+      }
+      const parsed = parseInt(val, 10);
+      if (
+        !Number.isInteger(parsed) ||
+        parsed <= 0 ||
+        String(parsed) !== val.trim()
+      ) {
+        return err({
+          type: "InvalidFlagValue" as const,
+          flag: "--max-steps",
+          message: "--max-steps requires a positive integer",
+        });
+      }
+      flags.maxSteps = parsed;
+      continue;
+    }
+    if (arg === "--output") {
+      const val = args[++i];
+      if (!val || val.startsWith("-")) {
+        return err({
+          type: "MissingFlagValue" as const,
+          flag: "--output",
+          message: "--output requires a directory path",
+        });
+      }
+      flags.output = val;
+      continue;
+    }
 
     // Commands
     if (!command) {
@@ -271,12 +355,26 @@ export function parseArgs(argv: string[]): Result<ParsedArgs, ArgParseError> {
       }
     }
 
-    // codex subcommands: smoke
+    // codex subcommands: smoke, install, run-workflow, package-artifact
     if (command === "codex" && flags.codexSubcommand === undefined) {
-      if (arg === "smoke") {
+      if (
+        arg === "smoke" ||
+        arg === "install" ||
+        arg === "run-workflow" ||
+        arg === "package-artifact"
+      ) {
         flags.codexSubcommand = arg;
         continue;
       }
+    }
+
+    if (
+      command === "codex" &&
+      flags.codexSubcommand === "run-workflow" &&
+      flags.codexWorkflowName === undefined
+    ) {
+      flags.codexWorkflowName = arg;
+      continue;
     }
 
     // Everything else goes into rest

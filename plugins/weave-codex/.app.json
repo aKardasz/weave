@@ -1,10 +1,7 @@
-// weave-managed
 {
   "apps": {
-    "weave-smoke": "./apps/weave-smoke-app.json"
-  },
-  "metadata": {
-    "generatedBy": "@weave/adapter-codex",
-    "ownership": "weave-managed"
+    "weave-smoke": {
+      "id": "weave-managed"
+    }
   }
 }

@@ -10,6 +10,7 @@
 - `PLUGIN_DATA` **required** — packages/adapters/codex/src/render-plugin.ts
 - `PLUGIN_ROOT` **required** — packages/adapters/codex/src/render-plugin.ts
 - `PWD` **required** — packages/adapters/opencode/src/adapter.ts
+- `WEAVE_CODEX_SMOKE_GLOBAL_FALLBACK` **required** — packages/adapters/codex/src/render-plugin.ts
 - `WEAVE_CODEX_SMOKE_PROOF` **required** — packages/adapters/codex/src/render-plugin.ts
 - `WEAVE_LOG_FILE` **required** — packages/engine/src/env.ts
 

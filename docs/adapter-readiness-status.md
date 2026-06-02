@@ -156,10 +156,11 @@ for the normative spec.
 
 ---
 
-## Codex Adapter — First-Slice Materialization
+## Codex Adapter — Materialization + Codex Exec Workflow Runtime
 
-`@weave/adapter-codex` is a project-local materialization adapter with runtime
-smoke stubs. It writes the Codex files that Codex already knows how to load:
+`@weave/adapter-codex` is a project-local materialization adapter with Weave
+workflow runtime support, Codex-backed step execution, and Codex plugin smoke
+stubs. It writes the Codex files that Codex already knows how to load:
 
 - `.codex/agents/*.toml` for custom agents generated from Weave descriptors.
 - `plugins/weave-codex/` for the repo-local plugin bundle.
@@ -181,7 +182,13 @@ the adapter keeps agents and plugin workflow affordances separate.
 | CLI detection/installer | ✅ | `codex` is a supported detected harness and installer target |
 | Global enablement | ✅ | Explicit `--codex-global`; backup-first home config update |
 | Live smoke command | ✅ | `weave codex smoke`; blocked locally if Codex optional dependency is missing |
-| Workflow runtime parity | ❌ | Deferred; smoke stubs do not persist or dispatch Weave workflow steps |
+| Workflow runtime parity | ✅ | `runCodexWorkflow` and `weave codex run-workflow` drive engine lifecycle state and execute steps through native custom-agent `codex exec --json` when the CLI exposes a selector |
+| Native capability probing | ✅ | Workflow steps fail before launch with `NativeAgentExecutionUnavailable` when native non-interactive custom-agent execution is unavailable |
+| Runtime journal events | ✅ | Sanitized adapter journal events record step status, exit code, JSON event count, and token totals when present |
+| Review verdict parsing | ✅ | `review_verdict` steps read explicit approval from parsed JSON events and fail closed when approval is absent |
+| Package artifact generation | ✅ | `weave codex package-artifact` writes a publishable plugin bundle without external marketplace push |
+| Stale generated pruning | ✅ | `--dry-run` reports stale owned artifacts; `--prune-generated` deletes only owned stale files |
+| Token usage reporting | ⚠️ | Best-effort from `codex exec --json`; unavailable when Codex omits usage events |
 
 See [Codex Adapter](codex-adapter.md), [ADR 0004](adr/0004-codex-adapter-materialization-shape.md),
 and [Spec 22](specs/22-spec-codex-adapter-materialization/22-spec-codex-adapter-materialization.md).

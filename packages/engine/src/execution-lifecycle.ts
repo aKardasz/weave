@@ -1477,11 +1477,11 @@ function buildStepPromptContext(
  *
  * Maps `RendererError` to a `LifecycleError` with type `validation`.
  */
-function renderStepPrompt(
+function renderStepPromptWithMetadata(
   promptTemplate: string,
   context: TemplateContext,
   artifactNames: readonly string[],
-): Result<{ byteLength: number }, LifecycleError> {
+): Result<{ prompt: string; byteLength: number }, LifecycleError> {
   // Build the allowed paths set, adding dynamic artifact paths.
   const allowedPaths = new Set(STEP_PROMPT_ALLOWED_PATHS);
   for (const name of artifactNames) {
@@ -1502,7 +1502,34 @@ function renderStepPrompt(
   }
   const rendered = renderResult.value;
   const byteLength = new TextEncoder().encode(rendered).byteLength;
-  return ok({ byteLength });
+  return ok({ prompt: rendered, byteLength });
+}
+
+function renderStepPrompt(
+  promptTemplate: string,
+  context: TemplateContext,
+  artifactNames: readonly string[],
+): Result<{ byteLength: number }, LifecycleError> {
+  return renderStepPromptWithMetadata(
+    promptTemplate,
+    context,
+    artifactNames,
+  ).map(({ byteLength }) => ({ byteLength }));
+}
+
+export function renderWorkflowStepPrompt(input: {
+  readonly instance: WorkflowInstance;
+  readonly step: WorkflowStep;
+}): Result<string, LifecycleError> {
+  const artifactNames = input.instance.artifacts.map(
+    (artifact) => artifact.name,
+  );
+  const promptContext = buildStepPromptContext(input.instance, input.step);
+  return renderStepPromptWithMetadata(
+    input.step.prompt,
+    promptContext,
+    artifactNames,
+  ).map(({ prompt }) => prompt);
 }
 
 /**

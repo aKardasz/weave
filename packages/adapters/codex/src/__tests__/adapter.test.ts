@@ -47,7 +47,10 @@ describe("CodexAdapter", () => {
     expect(
       snapshot["/project/plugins/weave-codex/skills/weave/SKILL.md"],
     ).toContain("name: weave");
-    expect(snapshot["/project/plugins/weave-codex/hooks/hooks.json"]).toContain(
+    expect(
+      snapshot["/project/plugins/weave-codex/skills/weave/agents/openai.yaml"],
+    ).toContain('display_name: "Weave"');
+    expect(snapshot["/project/plugins/weave-codex/hooks.json"]).toContain(
       "SessionStart",
     );
     expect(snapshot["/project/plugins/weave-codex/.mcp.json"]).toContain(

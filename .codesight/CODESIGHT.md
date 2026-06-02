@@ -3,20 +3,33 @@
 > **Stack:** raw-http | none | unknown | typescript
 > **Monorepo:** @weave/core, @weave/engine, @weave/config, @weave/cli, @weave/adapter-codex, @weave/adapter-opencode
 
-> 0 routes | 0 models | 0 components | 73 lib files | 10 env vars | 2 middleware | 0% test coverage
-> **Token savings:** this file is ~6,100 tokens. Without it, AI exploration would cost ~29,900 tokens. **Saves ~23,800 tokens per conversation.**
-> **Last scanned:** 2026-05-29 22:34 — re-run after significant changes
+> 0 routes | 0 models | 0 components | 80 lib files | 11 env vars | 2 middleware | 0% test coverage
+> **Token savings:** this file is ~6,800 tokens. Without it, AI exploration would cost ~31,900 tokens. **Saves ~25,000 tokens per conversation.**
+> **Last scanned:** 2026-06-02 19:47 — re-run after significant changes
 
 ---
 
 # Libraries
 
 - `packages/adapters/codex/src/capability-contract.ts` — function buildCodexCapabilityContract: () => AdapterCapabilityContract
+- `packages/adapters/codex/src/step-executor.ts`
+  - class CodexExecStepExecutor
+  - interface CodexStepExecutorOptions
+  - interface CodexStepExecutionInput
+  - interface CodexStepExecutionResult
+  - interface CodexStepExecutor
+  - type CodexStepExecutionError
 - `packages/adapters/codex/src/filesystem.ts`
   - class BunCodexFileSystem
   - class MemoryCodexFileSystem
   - interface CodexFileSystem
   - type CodexFileSystemError
+- `packages/adapters/codex/src/run-workflow.ts`
+  - function runCodexWorkflow: (input) => ResultAsync<CodexWorkflowRunResult, CodexWorkflowRuntimeError>
+  - class CodexWorkflowRunner
+  - interface CodexWorkflowRunnerOptions
+  - interface CodexWorkflowRunResult
+  - type CodexWorkflowRuntimeError
 - `packages/adapters/codex/src/adapter.ts`
   - class CodexAdapterError
   - class CodexAdapter
@@ -27,27 +40,63 @@
   fileReader?) => ResultAsyncType<
   - type MaterializeCodexProjectError
   - type MaterializeCodexProjectResult
+  - type CodexAgentArtifact
+- `packages/adapters/codex/src/artifact-inventory.ts`
+  - function inventoryCodexArtifacts: (input) => ResultAsync<CodexArtifactInventoryResult, CodexArtifactInventoryError>
+  - type CodexArtifactState
+  - type CodexArtifactCollision
+  - type CodexArtifactInventoryEntry
+  - type CodexArtifactInventoryResult
+  - type CodexArtifactInventoryError
+- `packages/adapters/codex/src/exec-events.ts`
+  - function parseCodexExecJsonEvents: (stdout) => Result<CodexParsedExecEvents, CodexJsonEventParseError>
+  - type CodexJsonEventParseError
+  - type CodexUsageUnavailable
+  - type CodexTokenUsage
+  - type CodexParsedExecEvents
+- `packages/adapters/codex/src/native-capability.ts`
+  - function parseCodexExecHelpForNativeAgentCapability: (helpText) => CodexNativeAgentCapability
+  - function injectedNativeCapability: (selectorFlag) => Result<CodexNativeAgentCapability, never>
+  - class StaticCodexNativeCapabilityProvider
+  - class CodexExecHelpCapabilityProvider
+  - interface CodexNativeCapabilityProvider
+  - type CodexNativeAgentCapability
+  - _...1 more_
+- `packages/adapters/codex/src/package-artifact.ts`
+  - function packageCodexPluginArtifact: (input) => ResultAsync<CodexPluginPackageResult, CodexPluginPackageError>
+  - type CodexPluginPackageResult
+  - type CodexPluginPackageError
 - `packages/adapters/codex/src/render-plugin.ts`
   - function renderPluginManifest: () => string
   - function renderWeaveSkill: () => string
+  - function renderWeaveSkillOpenAiMetadata: () => string
   - function renderHookManifest: () => string
   - function renderSmokeHookScript: () => string
   - function renderMcpConfig: () => string
-  - function renderSmokeMcpScript: () => string
-  - _...7 more_
+  - _...8 more_
 - `packages/adapters/codex/src/skill-discovery.ts` — function discoverCodexSkills: (input) => ResultAsync<SkillInfo[], SkillDiscoveryError>, type SkillDiscoveryError
 - `packages/adapters/codex/src/render-agent.ts`
   - function translateAgent: (descriptor, resolvedModel?) => Result<CodexAgentConfig, TranslateAgentError>
   - function renderAgentToml: (config) => string
   - type CodexAgentConfig
   - type TranslateAgentError
-- `packages/adapters/codex/src/model-resolution.ts` — function resolveCodexModelForAgent: (descriptor, context) => string | undefined, interface CodexModelContext
+- `packages/adapters/codex/src/model-resolution.ts`
+  - function resolveCodexModelForAgent: (descriptor, context) => Result<string | undefined, CodexModelResolutionError>
+  - interface CodexModelContext
+  - type CodexModelResolutionError
 - `packages/adapters/codex/src/global-config.ts`
   - function enableGlobalCodexPlugin: (input) => ResultAsyncType<GlobalCodexEnablementResult, GlobalCodexEnablementError>
+  - function syncGlobalCodexAgents: (input) => ResultAsyncType<
   - type GlobalCodexEnablementError
   - type GlobalCodexEnablementResult
+  - type GlobalCodexAgentArtifact
 - `packages/adapters/codex/src/ownership.ts` — function writeManagedFile: (input) => ResultAsync<void, ManagedWriteError>, type ManagedWriteError
 - `packages/adapters/codex/src/path-utils.ts` — function safeCodexFileStem: (name) => string
+- `packages/adapters/codex/src/process-runner.ts`
+  - class BunCodexProcessRunner
+  - interface CodexProcessRunner
+  - type CodexProcessRunResult
+  - type CodexProcessRunError
 - `packages/adapters/opencode/src/run-workflow.ts`
   - function runWorkflow: (input) => ResultAsync<RunWorkflowResult, RunWorkflowError>
   - interface RunWorkflowInput
@@ -110,9 +159,11 @@
 - `packages/cli/src/commands/codex.ts`
   - function runCodex: (ctx) => Promise<Result<number, CliError>>
   - function runCodexSmoke: (input) => ResultAsync<CodexSmokeResult, CodexSmokeError>
+  - function runCodexInstall: (input) => ResultAsync<CodexInstallResult, CodexCommandError>
+  - function runCodexPackageArtifact: (input) => ResultAsync<CodexPackageArtifactResult, CodexCommandError>
+  - function runCodexWorkflowCommand: (input) => void
   - interface CodexContext
-  - type CodexSmokeError
-  - type CodexSmokeResult
+  - _...5 more_
 - `packages/cli/src/commands/validate.ts` — function runValidate: (ctx) => Promise<Result<number, CliError>>, interface ValidateContext
 - `packages/cli/src/commands/runtime.ts` — function runRuntime: (ctx) => Promise<Result<number, CliError>>, interface RuntimeCommandContext
 - `packages/cli/src/args.ts`
@@ -263,7 +314,7 @@
   - function lifecycleLeaseConflictError: (workflowInstanceId, conflictingLeaseId, message) => LifecycleLeaseConflictError
   - function lifecyclePersistenceError: (message, cause?) => LifecyclePersistenceError
   - function lifecyclePolicyDecisionError: (message, rule?) => LifecyclePolicyDecisionError
-  - _...41 more_
+  - _...42 more_
 - `packages/engine/src/template-context.ts`
   - function buildTemplateContext: (input) => Result<AgentPromptTemplateContext, TemplateContextError>
   - interface AgentContextEntry
@@ -333,6 +384,7 @@
 - `PLUGIN_DATA` **required** — packages/adapters/codex/src/render-plugin.ts
 - `PLUGIN_ROOT` **required** — packages/adapters/codex/src/render-plugin.ts
 - `PWD` **required** — packages/adapters/opencode/src/adapter.ts
+- `WEAVE_CODEX_SMOKE_GLOBAL_FALLBACK` **required** — packages/adapters/codex/src/render-plugin.ts
 - `WEAVE_CODEX_SMOKE_PROOF` **required** — packages/adapters/codex/src/render-plugin.ts
 - `WEAVE_LOG_FILE` **required** — packages/engine/src/env.ts
 
@@ -360,20 +412,20 @@
 - `packages/engine/src/runtime/errors.ts` — imported by **11** files
 - `packages/adapters/opencode/src/sdk-types.ts` — imported by **9** files
 - `packages/cli/src/args.ts` — imported by **9** files
+- `packages/adapters/codex/src/filesystem.ts` — imported by **8** files
 - `packages/core/src/tokens.ts` — imported by **8** files
 - `packages/engine/src/compose.ts` — imported by **8** files
 - `packages/core/src/errors.ts` — imported by **6** files
 - `packages/cli/src/errors.ts` — imported by **6** files
 - `packages/engine/src/logger.ts` — imported by **6** files
-- `packages/adapters/codex/src/filesystem.ts` — imported by **5** files
+- `packages/adapters/codex/src/adapter.ts` — imported by **5** files
+- `packages/adapters/codex/src/path-utils.ts` — imported by **5** files
+- `packages/adapters/codex/src/index.ts` — imported by **5** files
 - `packages/adapters/opencode/src/index.ts` — imported by **5** files
 - `packages/core/src/lexer.ts` — imported by **5** files
 - `packages/cli/src/prompt/index.ts` — imported by **5** files
 - `packages/cli/src/cli.ts` — imported by **5** files
 - `packages/cli/src/theme/render.ts` — imported by **5** files
-- `packages/config/src/builtins.ts` — imported by **5** files
-- `packages/config/src/discovery.ts` — imported by **5** files
-- `packages/config/src/merge.ts` — imported by **5** files
 
 ## Import Map (who imports what)
 
@@ -383,17 +435,17 @@
 - `packages/engine/src/runtime/errors.ts` ← `packages/engine/src/__tests__/runtime-contract.test.ts`, `packages/engine/src/__tests__/runtime-journal.test.ts`, `packages/engine/src/__tests__/runtime-journal.test.ts`, `packages/engine/src/runtime/sanitizer.ts`, `packages/engine/src/runtime/sanitizer.ts` +6 more
 - `packages/adapters/opencode/src/sdk-types.ts` ← `packages/adapters/opencode/src/__tests__/run-workflow.test.ts`, `packages/adapters/opencode/src/__tests__/reconcile-agent.test.ts`, `packages/adapters/opencode/src/__tests__/adapter.test.ts`, `packages/adapters/opencode/src/__tests__/plugin.test.ts`, `packages/adapters/opencode/src/adapter.ts` +4 more
 - `packages/cli/src/args.ts` ← `packages/cli/src/commands/__tests__/init.test.ts`, `packages/cli/src/commands/__tests__/runtime.test.ts`, `packages/cli/src/commands/__tests__/codex.test.ts`, `packages/cli/src/commands/init.ts`, `packages/cli/src/commands/codex.ts` +4 more
+- `packages/adapters/codex/src/filesystem.ts` ← `packages/adapters/codex/src/index.ts`, `packages/adapters/codex/src/adapter.ts`, `packages/adapters/codex/src/materialize-project.ts`, `packages/adapters/codex/src/artifact-inventory.ts`, `packages/adapters/codex/src/package-artifact.ts` +3 more
 - `packages/core/src/tokens.ts` ← `packages/core/src/index.ts`, `packages/core/src/index.ts`, `packages/core/src/__tests__/lexer.test.ts`, `packages/core/src/lexer.ts`, `packages/core/src/ast.ts` +3 more
 - `packages/engine/src/compose.ts` ← `packages/engine/src/index.ts`, `packages/engine/src/__tests__/mock-adapter.ts`, `packages/engine/src/__tests__/template-context.test.ts`, `packages/engine/src/__tests__/compose.test.ts`, `packages/engine/src/adapter.ts` +3 more
 - `packages/core/src/errors.ts` ← `packages/core/src/index.ts`, `packages/core/src/__tests__/errors.test.ts`, `packages/core/src/lexer.ts`, `packages/core/src/validate.ts`, `packages/core/src/parse-config.ts` +1 more
-- `packages/cli/src/errors.ts` ← `packages/cli/src/commands/init.ts`, `packages/cli/src/commands/codex.ts`, `packages/cli/src/commands/validate.ts`, `packages/cli/src/commands/runtime.ts`, `packages/cli/src/index.ts` +1 more
 
 ---
 
 # Test Coverage
 
 > **0%** of routes and models are covered by tests
-> 62 test files found
+> 69 test files found
 
 ---
 

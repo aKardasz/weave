@@ -15,9 +15,13 @@ try {
   payload = { parseError: error instanceof Error ? error.message : String(error), raw: input };
 }
 
-const pluginData = Bun.env.PLUGIN_DATA ?? Bun.env.CLAUDE_PLUGIN_DATA ?? ".";
-const proofPath = `${pluginData}/weave-smoke-hooks.jsonl`;
 const mirrorProofPath = Bun.env.WEAVE_CODEX_SMOKE_PROOF;
+if (Bun.env.WEAVE_CODEX_SMOKE_GLOBAL_FALLBACK === "weave-managed" && (mirrorProofPath === undefined || mirrorProofPath.length === 0)) {
+  process.exit(0);
+}
+const fallbackPluginData = mirrorProofPath?.split("/").slice(0, -1).join("/");
+const pluginData = Bun.env.PLUGIN_DATA ?? Bun.env.CLAUDE_PLUGIN_DATA ?? fallbackPluginData ?? ".";
+const proofPath = `${pluginData}/weave-smoke-hooks.jsonl`;
 const proof = {
   generatedBy: "@weave/adapter-codex",
   marker: "weave-managed",
@@ -30,7 +34,7 @@ await Bun.$`mkdir -p ${pluginData}`.quiet();
 const existing = await Bun.file(proofPath).exists() ? await Bun.file(proofPath).text() : "";
 await Bun.write(proofPath, `${existing}${JSON.stringify(proof)}\n`);
 
-if (mirrorProofPath !== undefined && mirrorProofPath.length > 0) {
+if (mirrorProofPath !== undefined && mirrorProofPath.length > 0 && mirrorProofPath !== proofPath) {
   const mirrorDir = mirrorProofPath.split("/").slice(0, -1).join("/") || ".";
   await Bun.$`mkdir -p ${mirrorDir}`.quiet();
   const mirrorExisting = await Bun.file(mirrorProofPath).exists() ? await Bun.file(mirrorProofPath).text() : "";

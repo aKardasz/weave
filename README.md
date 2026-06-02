@@ -17,7 +17,7 @@ For a high-level flow diagram of configuration → engine → adapter → harnes
 | [`@weave/engine`](./packages/engine)                            | Pure composition APIs for descriptors, model intent, skill resolution, prompts, and policy |
 | [`@weave/cli`](./packages/cli)                                  | `weave` executable for config scaffolding, validation, and harness installation            |
 | [`@weave/adapter-opencode`](./packages/adapters/opencode)       | OpenCode plugin adapter                                                                    |
-| [`@weave/adapter-codex`](./packages/adapters/codex)             | Codex project materialization adapter                                                      |
+| [`@weave/adapter-codex`](./packages/adapters/codex)             | Codex project materialization and workflow runtime adapter                                  |
 | [`@weave/adapter-claude-code`](./packages/adapters/claude-code) | Claude Code adapter                                                                        |
 | [`@weave/adapter-pi`](./packages/adapters/pi)                   | Pi adapter                                                                                 |
 
@@ -83,13 +83,14 @@ In practice, the current OpenCode adapter covers the **materialization foundatio
 
 ### Codex adapter
 
-`@weave/adapter-codex` is implemented as a **first-slice Codex materialization adapter with runtime smoke stubs**. It writes Weave agents as Codex custom agent TOML files, generates a repo-local `plugins/weave-codex` plugin with a `$weave` skill plus hook/MCP/app smoke files, and updates `.agents/plugins/marketplace.json`.
+`@weave/adapter-codex` is implemented as a **Codex materialization adapter with Weave workflow runtime support**. It writes Weave agents as Codex custom agent TOML files, generates a repo-local `plugins/weave-codex` plugin with a `$weave` skill plus hook/MCP/app smoke files, and updates `.agents/plugins/marketplace.json`.
 
-Default installation is repo-local. `--codex-global` is the explicit opt-in for mutating `~/.codex` and `~/.agents/plugins`, and `weave codex smoke` can run an isolated live smoke test. The smoke stubs prove Codex can load generated hooks, MCP, and app metadata; they do not yet provide Weave workflow persistence, workflow step dispatch, event logging, token usage reporting, or public plugin publishing.
+Default installation is repo-local. `--codex-global` is the explicit opt-in for mutating `~/.codex` and `~/.agents/plugins`; it now installs the global plugin files and syncs generated Weave agent TOMLs into `~/.codex/agents`. `weave codex install` materializes repo-local Codex files, `weave codex run-workflow <workflow> --goal <text>` drives Weave workflow execution through the shared Runtime Store, and `weave codex smoke` runs an isolated live smoke test. The smoke stubs prove Codex can load the generated plugin and execute the packaged hook/MCP/app smoke surfaces; current Codex `exec` builds may require fallback execution for hook and MCP proof. Token usage reporting and public plugin publishing remain deferred.
 
-- current role: project-local Codex materializer
+- current role: project-local Codex materializer and Weave workflow runner
 - generated agents: `.codex/agents/*.toml`
 - generated plugin: `plugins/weave-codex/`
+- workflow command: `bun packages/cli/src/main.ts codex run-workflow quick-fix --goal "Fix the issue"`
 - smoke command: `bun packages/cli/src/main.ts codex smoke --codex-global`
 - docs: [Codex Adapter](./docs/codex-adapter.md), [ADR 0004](./docs/adr/0004-codex-adapter-materialization-shape.md), [Spec 22](./docs/specs/22-spec-codex-adapter-materialization/22-spec-codex-adapter-materialization.md)
 

@@ -1,11 +1,24 @@
 # Libraries
 
 - `packages/adapters/codex/src/capability-contract.ts` — function buildCodexCapabilityContract: () => AdapterCapabilityContract
+- `packages/adapters/codex/src/step-executor.ts`
+  - class CodexExecStepExecutor
+  - interface CodexStepExecutorOptions
+  - interface CodexStepExecutionInput
+  - interface CodexStepExecutionResult
+  - interface CodexStepExecutor
+  - type CodexStepExecutionError
 - `packages/adapters/codex/src/filesystem.ts`
   - class BunCodexFileSystem
   - class MemoryCodexFileSystem
   - interface CodexFileSystem
   - type CodexFileSystemError
+- `packages/adapters/codex/src/run-workflow.ts`
+  - function runCodexWorkflow: (input) => ResultAsync<CodexWorkflowRunResult, CodexWorkflowRuntimeError>
+  - class CodexWorkflowRunner
+  - interface CodexWorkflowRunnerOptions
+  - interface CodexWorkflowRunResult
+  - type CodexWorkflowRuntimeError
 - `packages/adapters/codex/src/adapter.ts`
   - class CodexAdapterError
   - class CodexAdapter
@@ -16,27 +29,63 @@
   fileReader?) => ResultAsyncType<
   - type MaterializeCodexProjectError
   - type MaterializeCodexProjectResult
+  - type CodexAgentArtifact
+- `packages/adapters/codex/src/artifact-inventory.ts`
+  - function inventoryCodexArtifacts: (input) => ResultAsync<CodexArtifactInventoryResult, CodexArtifactInventoryError>
+  - type CodexArtifactState
+  - type CodexArtifactCollision
+  - type CodexArtifactInventoryEntry
+  - type CodexArtifactInventoryResult
+  - type CodexArtifactInventoryError
+- `packages/adapters/codex/src/exec-events.ts`
+  - function parseCodexExecJsonEvents: (stdout) => Result<CodexParsedExecEvents, CodexJsonEventParseError>
+  - type CodexJsonEventParseError
+  - type CodexUsageUnavailable
+  - type CodexTokenUsage
+  - type CodexParsedExecEvents
+- `packages/adapters/codex/src/native-capability.ts`
+  - function parseCodexExecHelpForNativeAgentCapability: (helpText) => CodexNativeAgentCapability
+  - function injectedNativeCapability: (selectorFlag) => Result<CodexNativeAgentCapability, never>
+  - class StaticCodexNativeCapabilityProvider
+  - class CodexExecHelpCapabilityProvider
+  - interface CodexNativeCapabilityProvider
+  - type CodexNativeAgentCapability
+  - _...1 more_
+- `packages/adapters/codex/src/package-artifact.ts`
+  - function packageCodexPluginArtifact: (input) => ResultAsync<CodexPluginPackageResult, CodexPluginPackageError>
+  - type CodexPluginPackageResult
+  - type CodexPluginPackageError
 - `packages/adapters/codex/src/render-plugin.ts`
   - function renderPluginManifest: () => string
   - function renderWeaveSkill: () => string
+  - function renderWeaveSkillOpenAiMetadata: () => string
   - function renderHookManifest: () => string
   - function renderSmokeHookScript: () => string
   - function renderMcpConfig: () => string
-  - function renderSmokeMcpScript: () => string
-  - _...7 more_
+  - _...8 more_
 - `packages/adapters/codex/src/skill-discovery.ts` — function discoverCodexSkills: (input) => ResultAsync<SkillInfo[], SkillDiscoveryError>, type SkillDiscoveryError
 - `packages/adapters/codex/src/render-agent.ts`
   - function translateAgent: (descriptor, resolvedModel?) => Result<CodexAgentConfig, TranslateAgentError>
   - function renderAgentToml: (config) => string
   - type CodexAgentConfig
   - type TranslateAgentError
-- `packages/adapters/codex/src/model-resolution.ts` — function resolveCodexModelForAgent: (descriptor, context) => string | undefined, interface CodexModelContext
+- `packages/adapters/codex/src/model-resolution.ts`
+  - function resolveCodexModelForAgent: (descriptor, context) => Result<string | undefined, CodexModelResolutionError>
+  - interface CodexModelContext
+  - type CodexModelResolutionError
 - `packages/adapters/codex/src/global-config.ts`
   - function enableGlobalCodexPlugin: (input) => ResultAsyncType<GlobalCodexEnablementResult, GlobalCodexEnablementError>
+  - function syncGlobalCodexAgents: (input) => ResultAsyncType<
   - type GlobalCodexEnablementError
   - type GlobalCodexEnablementResult
+  - type GlobalCodexAgentArtifact
 - `packages/adapters/codex/src/ownership.ts` — function writeManagedFile: (input) => ResultAsync<void, ManagedWriteError>, type ManagedWriteError
 - `packages/adapters/codex/src/path-utils.ts` — function safeCodexFileStem: (name) => string
+- `packages/adapters/codex/src/process-runner.ts`
+  - class BunCodexProcessRunner
+  - interface CodexProcessRunner
+  - type CodexProcessRunResult
+  - type CodexProcessRunError
 - `packages/adapters/opencode/src/run-workflow.ts`
   - function runWorkflow: (input) => ResultAsync<RunWorkflowResult, RunWorkflowError>
   - interface RunWorkflowInput
@@ -99,9 +148,11 @@
 - `packages/cli/src/commands/codex.ts`
   - function runCodex: (ctx) => Promise<Result<number, CliError>>
   - function runCodexSmoke: (input) => ResultAsync<CodexSmokeResult, CodexSmokeError>
+  - function runCodexInstall: (input) => ResultAsync<CodexInstallResult, CodexCommandError>
+  - function runCodexPackageArtifact: (input) => ResultAsync<CodexPackageArtifactResult, CodexCommandError>
+  - function runCodexWorkflowCommand: (input) => void
   - interface CodexContext
-  - type CodexSmokeError
-  - type CodexSmokeResult
+  - _...5 more_
 - `packages/cli/src/commands/validate.ts` — function runValidate: (ctx) => Promise<Result<number, CliError>>, interface ValidateContext
 - `packages/cli/src/commands/runtime.ts` — function runRuntime: (ctx) => Promise<Result<number, CliError>>, interface RuntimeCommandContext
 - `packages/cli/src/args.ts`
@@ -252,7 +303,7 @@
   - function lifecycleLeaseConflictError: (workflowInstanceId, conflictingLeaseId, message) => LifecycleLeaseConflictError
   - function lifecyclePersistenceError: (message, cause?) => LifecyclePersistenceError
   - function lifecyclePolicyDecisionError: (message, rule?) => LifecyclePolicyDecisionError
-  - _...41 more_
+  - _...42 more_
 - `packages/engine/src/template-context.ts`
   - function buildTemplateContext: (input) => Result<AgentPromptTemplateContext, TemplateContextError>
   - interface AgentContextEntry

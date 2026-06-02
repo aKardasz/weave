@@ -11,13 +11,22 @@ export type CodexPluginManifest = {
   name: string;
   version: string;
   description: string;
+  author: {
+    name: string;
+    url: string;
+  };
+  keywords: string[];
   skills: string;
   mcpServers: string;
   apps: string;
-  hooks: string;
-  metadata: {
-    generatedBy: string;
-    ownership: string;
+  interface: {
+    displayName: string;
+    shortDescription: string;
+    longDescription: string;
+    developerName: string;
+    category: string;
+    capabilities: string[];
+    defaultPrompt: string[];
   };
 };
 
@@ -58,13 +67,23 @@ export function renderPluginManifest(): string {
     version: "0.0.1",
     description:
       "Repo-local Weave workflows and adapter affordances for Codex.",
+    author: {
+      name: "Weave",
+      url: "https://github.com/adrianwedd/weave",
+    },
+    keywords: ["weave", "codex", WEAVE_MANAGED_MARKER],
     skills: "./skills/",
     mcpServers: "./.mcp.json",
     apps: "./.app.json",
-    hooks: "./hooks/hooks.json",
-    metadata: {
-      generatedBy: WEAVE_GENERATED_BY,
-      ownership: WEAVE_MANAGED_MARKER,
+    interface: {
+      displayName: "Weave Codex",
+      shortDescription: "Weave-generated agents and runtime smoke surfaces.",
+      longDescription:
+        "Repo-local Weave affordances for Codex custom agents, skills, MCP smoke tooling, and app metadata.",
+      developerName: "Weave",
+      category: "Productivity",
+      capabilities: ["Interactive", "Read"],
+      defaultPrompt: ["Use Weave-generated Codex agents"],
     },
   };
 
@@ -78,6 +97,8 @@ export function renderWeaveSkill(): string {
     'description: "Use when the user wants Codex to operate through Weave-generated agents, workflows, or adapter materialization conventions."',
     "---",
     "",
+    "<!-- weave-managed -->",
+    "",
     "# Weave",
     "",
     "Use the generated Codex custom agents under `.codex/agents/` for specialized Weave roles.",
@@ -85,13 +106,26 @@ export function renderWeaveSkill(): string {
     "",
     "When delegating, prefer the generated agent whose description best matches the task.",
     "The smoke runtime surfaces prove Codex can load Weave plugin hooks, MCP, and app metadata.",
-    "Do not assume full Weave workflow dispatch is available unless a later adapter slice documents it.",
+    "When the user asks to run a Weave workflow from the shell, use `weave codex run-workflow <workflow> --goal <text>` from the repository root.",
+    "Use `--codex-global` only when the user explicitly asks to enable global Codex plugin configuration.",
+    "",
+  ].join("\n");
+}
+
+export function renderWeaveSkillOpenAiMetadata(): string {
+  return [
+    "# weave-managed",
+    "interface:",
+    '  display_name: "Weave"',
+    '  short_description: "Use Weave-generated Codex agents and workflows"',
+    '  default_prompt: "Use Weave-generated Codex agents for this repository."',
     "",
   ].join("\n");
 }
 
 export function renderHookManifest(): string {
   const pluginRoot = "$" + "{PLUGIN_ROOT}";
+  const command = `bun run ${pluginRoot}/hooks/weave-smoke-hook.ts`;
   const hooks = {
     hooks: {
       SessionStart: [
@@ -99,7 +133,7 @@ export function renderHookManifest(): string {
           hooks: [
             {
               type: "command",
-              command: `bun run ${pluginRoot}/hooks/weave-smoke-hook.ts`,
+              command,
               statusMessage: "Recording Weave smoke hook",
             },
           ],
@@ -110,8 +144,30 @@ export function renderHookManifest(): string {
           hooks: [
             {
               type: "command",
-              command: `bun run ${pluginRoot}/hooks/weave-smoke-hook.ts`,
+              command,
               statusMessage: "Recording Weave prompt smoke hook",
+            },
+          ],
+        },
+      ],
+      SubagentStart: [
+        {
+          hooks: [
+            {
+              type: "command",
+              command,
+              statusMessage: "Recording Weave subagent start smoke hook",
+            },
+          ],
+        },
+      ],
+      SubagentStop: [
+        {
+          hooks: [
+            {
+              type: "command",
+              command,
+              statusMessage: "Recording Weave subagent stop smoke hook",
             },
           ],
         },
@@ -151,9 +207,13 @@ export function renderSmokeHookScript(): string {
     "  payload = { parseError: error instanceof Error ? error.message : String(error), raw: input };",
     "}",
     "",
-    'const pluginData = Bun.env.PLUGIN_DATA ?? Bun.env.CLAUDE_PLUGIN_DATA ?? ".";',
-    `const proofPath = \`${pluginDataExpr}/weave-smoke-hooks.jsonl\`;`,
     "const mirrorProofPath = Bun.env.WEAVE_CODEX_SMOKE_PROOF;",
+    'if (Bun.env.WEAVE_CODEX_SMOKE_GLOBAL_FALLBACK === "weave-managed" && (mirrorProofPath === undefined || mirrorProofPath.length === 0)) {',
+    "  process.exit(0);",
+    "}",
+    'const fallbackPluginData = mirrorProofPath?.split("/").slice(0, -1).join("/");',
+    'const pluginData = Bun.env.PLUGIN_DATA ?? Bun.env.CLAUDE_PLUGIN_DATA ?? fallbackPluginData ?? ".";',
+    `const proofPath = \`${pluginDataExpr}/weave-smoke-hooks.jsonl\`;`,
     "const proof = {",
     '  generatedBy: "@weave/adapter-codex",',
     '  marker: "weave-managed",',
@@ -166,7 +226,7 @@ export function renderSmokeHookScript(): string {
     'const existing = await Bun.file(proofPath).exists() ? await Bun.file(proofPath).text() : "";',
     `await Bun.write(proofPath, \`${existingExpr}${proofExpr}\\n\`);`,
     "",
-    "if (mirrorProofPath !== undefined && mirrorProofPath.length > 0) {",
+    "if (mirrorProofPath !== undefined && mirrorProofPath.length > 0 && mirrorProofPath !== proofPath) {",
     '  const mirrorDir = mirrorProofPath.split("/").slice(0, -1).join("/") || ".";',
     `  await Bun.$\`mkdir -p ${mirrorDirExpr}\`.quiet();`,
     '  const mirrorExisting = await Bun.file(mirrorProofPath).exists() ? await Bun.file(mirrorProofPath).text() : "";',
@@ -179,18 +239,15 @@ export function renderSmokeHookScript(): string {
 export function renderMcpConfig(): string {
   const pluginRoot = "$" + "{PLUGIN_ROOT}";
   const config = {
-    mcp_servers: {
+    mcpServers: {
       [CODEX_SMOKE_MCP_SERVER_NAME]: {
         command: "bun",
         args: ["run", `${pluginRoot}/mcp/weave-smoke-mcp.ts`],
         env: {
           WEAVE_CODEX_SMOKE_PLUGIN: WEAVE_CODEX_PLUGIN_NAME,
         },
+        note: `${WEAVE_GENERATED_BY} ${WEAVE_MANAGED_MARKER}`,
       },
-    },
-    metadata: {
-      generatedBy: WEAVE_GENERATED_BY,
-      ownership: WEAVE_MANAGED_MARKER,
     },
   };
 
@@ -303,11 +360,9 @@ function jsTemplateExpression(expression: string): string {
 export function renderAppManifest(): string {
   const manifest = {
     apps: {
-      "weave-smoke": "./apps/weave-smoke-app.json",
-    },
-    metadata: {
-      generatedBy: WEAVE_GENERATED_BY,
-      ownership: WEAVE_MANAGED_MARKER,
+      "weave-smoke": {
+        id: WEAVE_MANAGED_MARKER,
+      },
     },
   };
 

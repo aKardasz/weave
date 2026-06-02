@@ -41,6 +41,12 @@ describe("materializeCodexProject", () => {
     });
 
     expect(result.isOk()).toBe(true);
+    const value = result._unsafeUnwrap();
+    expect(value.agentArtifacts).toHaveLength(value.agentCount);
+    const helper = value.agentArtifacts.find(
+      (agent) => agent.name === "helper",
+    );
+    expect(helper?.content).toContain("Help with this project.");
     expect(fs.snapshot()["/project/.codex/agents/helper.toml"]).toContain(
       "Help with this project.",
     );

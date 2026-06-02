@@ -153,10 +153,11 @@ session, then substantial plan execution happens in a Tapestry-shaped session.
 - generated Weave specialists → Codex custom agents
 - `$weave` coordination entrypoint → repo-local Codex plugin skill
 - hook/MCP/app load validation → generated smoke plugin surfaces
-- live workflow persistence/dispatch → deferred beyond smoke stubs
+- live workflow persistence/dispatch → Weave engine lifecycle plus Runtime Store
 
-This suggests project materialization plus a narrow live smoke layer first, not
-OpenCode-style runtime parity.
+This suggests project materialization plus Weave-owned workflow runtime parity.
+Native Codex hook/MCP/app execution remains a smoke-tested packaging surface,
+not the source of workflow truth.
 
 ### Kiro
 

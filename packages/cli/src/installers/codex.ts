@@ -12,6 +12,7 @@ import {
   renderSmokeHookScript,
   renderSmokeMcpScript,
   renderWeaveSkill,
+  renderWeaveSkillOpenAiMetadata,
   WEAVE_MANAGED_MARKER,
 } from "@weave/adapter-codex";
 import {
@@ -69,6 +70,16 @@ export class CodexInstaller implements HarnessInstaller {
           request.force,
         ).map((skillChanged) => changed || skillChanged);
       })
+      .andThen((changed) =>
+        this.writeManaged(
+          join(
+            projectRoot,
+            "plugins/weave-codex/skills/weave/agents/openai.yaml",
+          ),
+          renderWeaveSkillOpenAiMetadata(),
+          request.force,
+        ).map((metadataChanged) => changed || metadataChanged),
+      )
       .andThen((changed) =>
         this.writeRuntimeFiles(projectRoot, request.force).map(
           (runtimeChanged) => {
@@ -142,6 +153,10 @@ export class CodexInstaller implements HarnessInstaller {
   private writeRuntimeFiles(projectRoot: string, force: boolean) {
     const pluginRoot = join(projectRoot, "plugins/weave-codex");
     const files: Array<{ path: string; content: string }> = [
+      {
+        path: join(pluginRoot, "hooks.json"),
+        content: renderHookManifest(),
+      },
       {
         path: join(pluginRoot, "hooks/hooks.json"),
         content: renderHookManifest(),
@@ -241,6 +256,14 @@ class CliCodexFileSystemAdapter implements CodexFileSystem {
 
   mkdir(path: string): ResultAsyncType<void, CodexFileSystemError> {
     return this.cliFs.mkdir(path).mapErr(toCodexFsError);
+  }
+
+  listFiles(path: string): ResultAsyncType<string[], CodexFileSystemError> {
+    return this.cliFs.listFiles(path).mapErr(toCodexFsError);
+  }
+
+  deleteFile(path: string): ResultAsyncType<void, CodexFileSystemError> {
+    return this.cliFs.deleteFile(path).mapErr(toCodexFsError);
   }
 }
 

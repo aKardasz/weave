@@ -1,6 +1,5 @@
-// weave-managed
 {
-  "mcp_servers": {
+  "mcpServers": {
     "weave-smoke": {
       "command": "bun",
       "args": [
@@ -9,11 +8,8 @@
       ],
       "env": {
         "WEAVE_CODEX_SMOKE_PLUGIN": "weave-codex"
-      }
+      },
+      "note": "@weave/adapter-codex weave-managed"
     }
-  },
-  "metadata": {
-    "generatedBy": "@weave/adapter-codex",
-    "ownership": "weave-managed"
   }
 }

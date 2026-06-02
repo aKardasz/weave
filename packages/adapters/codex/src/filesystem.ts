@@ -7,7 +7,7 @@ type FileSystemErrorCause =
 
 export type CodexFileSystemError = {
   type: "CodexFileSystemError";
-  operation: "exists" | "read" | "write" | "mkdir";
+  operation: "exists" | "read" | "write" | "mkdir" | "list" | "delete";
   path: string;
   cause: FileSystemErrorCause;
 };
@@ -20,6 +20,8 @@ export interface CodexFileSystem {
     content: string,
   ): ResultAsync<void, CodexFileSystemError>;
   mkdir(path: string): ResultAsync<void, CodexFileSystemError>;
+  listFiles(path: string): ResultAsync<string[], CodexFileSystemError>;
+  deleteFile(path: string): ResultAsync<void, CodexFileSystemError>;
   cwd(): string;
   home(): string;
   resolvePath(path: string): string;
@@ -66,6 +68,20 @@ function toReadError(path: string): (cause: unknown) => CodexFileSystemError {
       };
     }
     return toError("read", path)(cause);
+  };
+}
+
+function toListError(path: string): (cause: unknown) => CodexFileSystemError {
+  return (cause) => {
+    if (isMissingFileCause(cause)) {
+      return {
+        type: "CodexFileSystemError",
+        operation: "list",
+        path,
+        cause: { kind: "MissingFile" },
+      };
+    }
+    return toError("list", path)(cause);
   };
 }
 
@@ -119,6 +135,26 @@ export class BunCodexFileSystem implements CodexFileSystem {
     return ResultAsync.fromPromise(
       Bun.$`mkdir -p ${resolved}`.quiet().then(() => undefined),
       toError("mkdir", resolved),
+    );
+  }
+
+  listFiles(path: string): ResultAsync<string[], CodexFileSystemError> {
+    const resolved = this.resolvePath(path);
+    return ResultAsync.fromPromise(
+      Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: resolved })).then(
+        (files) => files.map((file) => resolve(resolved, file)),
+      ),
+      toListError(resolved),
+    );
+  }
+
+  deleteFile(path: string): ResultAsync<void, CodexFileSystemError> {
+    const resolved = this.resolvePath(path);
+    return ResultAsync.fromPromise(
+      Bun.file(resolved)
+        .delete()
+        .then(() => undefined),
+      toError("delete", resolved),
     );
   }
 }
@@ -185,6 +221,21 @@ export class MemoryCodexFileSystem implements CodexFileSystem {
 
   mkdir(path: string): ResultAsync<void, CodexFileSystemError> {
     this.ensureDirsExist(this.resolvePath(path));
+    return okAsync(undefined);
+  }
+
+  listFiles(path: string): ResultAsync<string[], CodexFileSystemError> {
+    const resolved = this.resolvePath(path);
+    const prefix = resolved.endsWith("/") ? resolved : `${resolved}/`;
+    const files = [...this.files.keys()].filter((file) =>
+      file.startsWith(prefix),
+    );
+    return okAsync(files);
+  }
+
+  deleteFile(path: string): ResultAsync<void, CodexFileSystemError> {
+    const resolved = this.resolvePath(path);
+    this.files.delete(resolved);
     return okAsync(undefined);
   }
 

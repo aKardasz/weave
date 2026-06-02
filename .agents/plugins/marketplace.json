@@ -1,14 +1,24 @@
-// weave-managed
 {
+  "name": "weave-local",
+  "interface": {
+    "displayName": "Weave Local Plugins"
+  },
+  "metadata": {
+    "generatedBy": "@weave/adapter-codex",
+    "ownership": "weave-managed"
+  },
   "plugins": [
     {
-      "id": "weave-codex",
-      "name": "Weave Codex",
-      "path": "./plugins/weave-codex",
-      "category": "workflow",
-      "installation": "local",
-      "authentication": "none",
-      "description": "Repo-local Weave workflows and generated Codex agent support."
+      "name": "weave-codex",
+      "source": {
+        "source": "local",
+        "path": "./plugins/weave-codex"
+      },
+      "policy": {
+        "installation": "INSTALLED_BY_DEFAULT",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
     }
   ]
 }

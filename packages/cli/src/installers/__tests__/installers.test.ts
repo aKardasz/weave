@@ -130,12 +130,16 @@ describe("harness installers", () => {
     expect(result._unsafeUnwrap().changed).toBe(true);
     const snapshot = fs.snapshot();
     expect(
-      snapshot[
-        "/home/user/.codex/plugins/weave-codex/.codex-plugin/plugin.json"
-      ],
+      snapshot["/home/user/plugins/weave-codex/.codex-plugin/plugin.json"],
     ).toContain("weave-codex");
+    expect(snapshot["/home/user/plugins/weave-codex/hooks.json"]).toContain(
+      "SessionStart",
+    );
     expect(snapshot["/home/user/.codex/config.toml"]).toContain(
       '[plugins."weave-codex".mcp_servers.weave-smoke]',
+    );
+    expect(snapshot["/home/user/.codex/hooks.json"]).toContain(
+      "weave-managed:codex-smoke-global-hook",
     );
   });
 

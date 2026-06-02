@@ -12,6 +12,12 @@ import {
   type ResultAsync as ResultAsyncType,
 } from "neverthrow";
 import { CodexAdapter, type CodexAdapterOptions } from "./adapter.js";
+import {
+  type CodexArtifactInventoryResult,
+  inventoryCodexArtifacts,
+} from "./artifact-inventory.js";
+import { BunCodexFileSystem } from "./filesystem.js";
+import { safeCodexFileStem } from "./path-utils.js";
 
 const log = logger.child({ module: "adapter-codex/materialize-project" });
 
@@ -23,12 +29,21 @@ export type MaterializeCodexProjectError =
 export type MaterializeCodexProjectResult = {
   agentCount: number;
   materializationErrorCount: number;
+  artifactInventory: CodexArtifactInventoryResult;
+  agentArtifacts: CodexAgentArtifact[];
+};
+
+export type CodexAgentArtifact = {
+  name: string;
+  path: string;
+  content: string;
 };
 
 export function materializeCodexProject(input: {
   projectRoot: string;
   adapterOptions?: Omit<CodexAdapterOptions, "projectRoot">;
   fileReader?: FileReader;
+  pruneGenerated?: boolean;
 }): ResultAsyncType<
   MaterializeCodexProjectResult,
   MaterializeCodexProjectError
@@ -44,6 +59,7 @@ export function materializeCodexProject(input: {
             config,
             projectRoot: input.projectRoot,
             adapterOptions: input.adapterOptions,
+            pruneGenerated: input.pruneGenerated,
           }),
         ),
     );
@@ -54,6 +70,7 @@ function runCodexMaterialization(input: {
   config: Parameters<typeof resolveSkillsForConfig>[0]["config"];
   projectRoot: string;
   adapterOptions?: Omit<CodexAdapterOptions, "projectRoot">;
+  pruneGenerated?: boolean;
 }): ResultAsyncType<
   MaterializeCodexProjectResult,
   MaterializeCodexProjectError
@@ -69,9 +86,12 @@ async function runCodexMaterializationUnsafe(input: {
   config: Parameters<typeof resolveSkillsForConfig>[0]["config"];
   projectRoot: string;
   adapterOptions?: Omit<CodexAdapterOptions, "projectRoot">;
+  pruneGenerated?: boolean;
 }) {
+  const fs = input.adapterOptions?.fs ?? new BunCodexFileSystem();
   const adapter = new CodexAdapter({
     ...input.adapterOptions,
+    fs,
     projectRoot: input.projectRoot,
   });
 
@@ -93,6 +113,39 @@ async function runCodexMaterializationUnsafe(input: {
     await adapter.spawnSubagent(descriptor);
   }
 
+  const agentArtifacts: CodexAgentArtifact[] = [];
+  for (const { descriptor } of input.plan.agents) {
+    const path = adapter.writtenAgents.get(descriptor.name);
+    if (path === undefined) continue;
+
+    const content = await fs.readText(path);
+    if (content.isErr()) {
+      return err<MaterializeCodexProjectResult, MaterializeCodexProjectError>({
+        type: "AdapterError",
+        cause: content.error,
+      });
+    }
+
+    agentArtifacts.push({
+      name: safeCodexFileStem(descriptor.name),
+      path,
+      content: content.value,
+    });
+  }
+
+  const artifactInventory = await inventoryCodexArtifacts({
+    fs,
+    projectRoot: input.projectRoot,
+    currentAgentNames: input.plan.agents.map((agent) => agent.agentName),
+    prune: input.pruneGenerated,
+  });
+  if (artifactInventory.isErr()) {
+    return err<MaterializeCodexProjectResult, MaterializeCodexProjectError>({
+      type: "AdapterError",
+      cause: artifactInventory.error,
+    });
+  }
+
   if (input.plan.errors.length > 0) {
     log.warn(
       { count: input.plan.errors.length },
@@ -103,5 +156,7 @@ async function runCodexMaterializationUnsafe(input: {
   return ok<MaterializeCodexProjectResult, MaterializeCodexProjectError>({
     agentCount: input.plan.agents.length,
     materializationErrorCount: input.plan.errors.length,
+    artifactInventory: artifactInventory.value,
+    agentArtifacts,
   });
 }

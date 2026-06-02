@@ -30,6 +30,7 @@ import {
   renderSmokeHookScript,
   renderSmokeMcpScript,
   renderWeaveSkill,
+  renderWeaveSkillOpenAiMetadata,
 } from "./render-plugin.js";
 import { discoverCodexSkills } from "./skill-discovery.js";
 
@@ -85,6 +86,10 @@ export class CodexAdapter implements HarnessAdapter {
     this.injectedSkills = options.availableSkills;
   }
 
+  get projectRootPath(): string {
+    return this.projectRoot;
+  }
+
   async init(): Promise<void> {
     this.planStateProvider = new BunFilesystemPlanStateProvider(
       this.projectRoot,
@@ -121,7 +126,14 @@ export class CodexAdapter implements HarnessAdapter {
       descriptor,
       this.modelContext,
     );
-    const translated = translateAgent(descriptor, resolvedModel);
+    if (resolvedModel.isErr()) {
+      throw new CodexAdapterError({
+        type: "TranslateAgentError",
+        message: resolvedModel.error.message,
+        cause: resolvedModel.error,
+      });
+    }
+    const translated = translateAgent(descriptor, resolvedModel.value);
 
     if (translated.isErr()) {
       throw new CodexAdapterError({
@@ -169,6 +181,18 @@ export class CodexAdapter implements HarnessAdapter {
         fs: this.fs,
         path: join(pluginRoot, "skills/weave/SKILL.md"),
         content: renderWeaveSkill(),
+        force: this.force,
+      }),
+      writeManagedFile({
+        fs: this.fs,
+        path: join(pluginRoot, "skills/weave/agents/openai.yaml"),
+        content: renderWeaveSkillOpenAiMetadata(),
+        force: this.force,
+      }),
+      writeManagedFile({
+        fs: this.fs,
+        path: join(pluginRoot, "hooks.json"),
+        content: renderHookManifest(),
         force: this.force,
       }),
       writeManagedFile({

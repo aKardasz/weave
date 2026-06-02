@@ -87,6 +87,7 @@ export {
   lifecyclePolicyDecisionError,
   lifecycleValidationError,
   observeSession,
+  renderWorkflowStepPrompt,
   resumeExecution,
   sanitizeMetadata,
   startExecution,

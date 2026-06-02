@@ -410,6 +410,8 @@ Adapter (harness event) → lifecycle method → engine policy → Runtime Store
 
 See [`packages/engine/src/execution-lifecycle.ts`](../packages/engine/src/execution-lifecycle.ts) for the full type definitions and factory helpers.
 
+Adapters may append sanitized Runtime Journal entries for adapter-owned observations around lifecycle calls, such as "Codex materialized this step agent". These journal entries are observational only and must not become source-of-truth workflow state.
+
 ---
 
 ## Workflow Engine

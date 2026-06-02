@@ -1,5 +1,6 @@
 import type { AgentDescriptor, ModelResolutionInput } from "@weave/engine";
 import { resolveAdapterModelIntent } from "@weave/engine";
+import { err, ok, type Result } from "neverthrow";
 
 export interface CodexModelContext {
   availableModels?: Set<string>;
@@ -8,10 +9,18 @@ export interface CodexModelContext {
   overrideModel?: string;
 }
 
+export type CodexModelResolutionError = {
+  readonly type: "CodexModelNotAvailableError";
+  readonly agentName: string;
+  readonly requestedModels: readonly string[];
+  readonly availableModels: readonly string[];
+  readonly message: string;
+};
+
 export function resolveCodexModelForAgent(
   descriptor: AgentDescriptor,
   context: CodexModelContext = {},
-): string | undefined {
+): Result<string | undefined, CodexModelResolutionError> {
   const input: ModelResolutionInput = {
     agentName: descriptor.name,
     agentMode: descriptor.mode,
@@ -22,6 +31,26 @@ export function resolveCodexModelForAgent(
     availableModels: context.availableModels,
   };
 
+  if (
+    descriptor.mode === "subagent" &&
+    descriptor.models.length > 0 &&
+    context.availableModels !== undefined
+  ) {
+    const firstDeclared = descriptor.models[0];
+    if (
+      firstDeclared !== undefined &&
+      !context.availableModels.has(firstDeclared)
+    ) {
+      return err({
+        type: "CodexModelNotAvailableError",
+        agentName: descriptor.name,
+        requestedModels: descriptor.models,
+        availableModels: [...context.availableModels],
+        message: `Agent "${descriptor.name}" declares model "${firstDeclared}" but it is not available in this Codex context.`,
+      });
+    }
+  }
+
   const resolved = resolveAdapterModelIntent(input);
-  return resolved.model;
+  return ok(resolved.model);
 }

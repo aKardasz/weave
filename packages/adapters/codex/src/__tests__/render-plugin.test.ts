@@ -9,6 +9,7 @@ import {
   renderSmokeHookScript,
   renderSmokeMcpScript,
   renderWeaveSkill,
+  renderWeaveSkillOpenAiMetadata,
 } from "../render-plugin.js";
 
 describe("Codex plugin rendering", () => {
@@ -19,15 +20,27 @@ describe("Codex plugin rendering", () => {
     expect(manifest.skills).toBe("./skills/");
     expect(manifest.mcpServers).toBe("./.mcp.json");
     expect(manifest.apps).toBe("./.app.json");
-    expect(manifest.hooks).toBe("./hooks/hooks.json");
-    expect(manifest.metadata.ownership).toBe("weave-managed");
+    expect(manifest.hooks).toBeUndefined();
+    expect(manifest.keywords).toContain("weave-managed");
+    expect(manifest.interface.displayName).toBe("Weave Codex");
   });
 
   it("renders the weave skill", () => {
     const skill = renderWeaveSkill();
 
     expect(skill).toContain("name: weave");
+    expect(skill).toContain("weave-managed");
     expect(skill).toContain(".codex/agents/");
+    expect(skill).toContain("weave codex run-workflow");
+  });
+
+  it("renders Codex skill interface metadata", () => {
+    const metadata = renderWeaveSkillOpenAiMetadata();
+
+    expect(metadata).toContain("interface:");
+    expect(metadata).toContain('display_name: "Weave"');
+    expect(metadata).toContain("default_prompt:");
+    expect(metadata).toContain("weave-managed");
   });
 
   it("renders hook smoke configuration", () => {
@@ -38,15 +51,21 @@ describe("Codex plugin rendering", () => {
     expect(parsed.hooks.UserPromptSubmit[0].hooks[0].command).toContain(
       "weave-smoke-hook.ts",
     );
+    expect(parsed.hooks.SubagentStart[0].hooks[0].command).toContain(
+      "weave-smoke-hook.ts",
+    );
+    expect(parsed.hooks.SubagentStop[0].hooks[0].statusMessage).toContain(
+      "subagent stop",
+    );
     expect(renderSmokeHookScript()).toContain("weave-smoke-hooks.jsonl");
   });
 
   it("renders MCP smoke configuration and server script", () => {
     const parsed = JSON.parse(renderMcpConfig());
 
-    expect(parsed.mcp_servers["weave-smoke"].command).toBe("bun");
+    expect(parsed.mcpServers["weave-smoke"].command).toBe("bun");
     const pluginRoot = "$" + "{PLUGIN_ROOT}";
-    expect(parsed.mcp_servers["weave-smoke"].args).toContain(
+    expect(parsed.mcpServers["weave-smoke"].args).toContain(
       `${pluginRoot}/mcp/weave-smoke-mcp.ts`,
     );
     expect(renderSmokeMcpScript()).toContain("weave_smoke");
@@ -56,7 +75,7 @@ describe("Codex plugin rendering", () => {
     const appManifest = JSON.parse(renderAppManifest());
     const app = JSON.parse(renderSmokeApp());
 
-    expect(appManifest.apps["weave-smoke"]).toBe("./apps/weave-smoke-app.json");
+    expect(appManifest.apps["weave-smoke"].id).toBe("weave-managed");
     expect(app.metadata.ownership).toBe("weave-managed");
   });
 

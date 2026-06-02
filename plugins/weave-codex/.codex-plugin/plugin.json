@@ -1,14 +1,31 @@
-// weave-managed
 {
   "name": "weave-codex",
   "version": "0.0.1",
   "description": "Repo-local Weave workflows and adapter affordances for Codex.",
+  "author": {
+    "name": "Weave",
+    "url": "https://github.com/adrianwedd/weave"
+  },
+  "keywords": [
+    "weave",
+    "codex",
+    "weave-managed"
+  ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "apps": "./.app.json",
-  "hooks": "./hooks/hooks.json",
-  "metadata": {
-    "generatedBy": "@weave/adapter-codex",
-    "ownership": "weave-managed"
+  "interface": {
+    "displayName": "Weave Codex",
+    "shortDescription": "Weave-generated agents and runtime smoke surfaces.",
+    "longDescription": "Repo-local Weave affordances for Codex custom agents, skills, MCP smoke tooling, and app metadata.",
+    "developerName": "Weave",
+    "category": "Productivity",
+    "capabilities": [
+      "Interactive",
+      "Read"
+    ],
+    "defaultPrompt": [
+      "Use Weave-generated Codex agents"
+    ]
   }
 }

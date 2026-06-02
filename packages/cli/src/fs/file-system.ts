@@ -7,7 +7,7 @@ type FileSystemErrorCause =
 
 export type FileSystemError = {
   type: "FileSystemError";
-  operation: "exists" | "read" | "write" | "mkdir" | "copy";
+  operation: "exists" | "read" | "write" | "mkdir" | "copy" | "list" | "delete";
   path: string;
   cause: FileSystemErrorCause;
 };
@@ -18,6 +18,8 @@ export interface FileSystem {
   writeText(path: string, content: string): ResultAsync<void, FileSystemError>;
   mkdir(path: string): ResultAsync<void, FileSystemError>;
   copyFile(from: string, to: string): ResultAsync<void, FileSystemError>;
+  listFiles(path: string): ResultAsync<string[], FileSystemError>;
+  deleteFile(path: string): ResultAsync<void, FileSystemError>;
   cwd(): string;
   home(): string;
   resolvePath(path: string): string;
@@ -133,6 +135,26 @@ export class BunFileSystem implements FileSystem {
       this.writeText(to, content),
     );
   }
+
+  listFiles(path: string): ResultAsync<string[], FileSystemError> {
+    const resolved = this.resolvePath(path);
+    return ResultAsync.fromPromise(
+      Array.fromAsync(new Bun.Glob("**/*").scan({ cwd: resolved })).then(
+        (files) => files.map((file) => resolve(resolved, file)),
+      ),
+      toError("list", resolved),
+    );
+  }
+
+  deleteFile(path: string): ResultAsync<void, FileSystemError> {
+    const resolved = this.resolvePath(path);
+    return ResultAsync.fromPromise(
+      Bun.file(resolved)
+        .delete()
+        .then(() => undefined),
+      toError("delete", resolved),
+    );
+  }
 }
 
 export class MemoryFileSystem implements FileSystem {
@@ -202,6 +224,19 @@ export class MemoryFileSystem implements FileSystem {
     return this.readText(from).andThen((content) =>
       this.writeText(to, content),
     );
+  }
+
+  listFiles(path: string): ResultAsync<string[], FileSystemError> {
+    const resolved = this.resolvePath(path);
+    const prefix = resolved.endsWith("/") ? resolved : `${resolved}/`;
+    return okAsync(
+      [...this.files.keys()].filter((file) => file.startsWith(prefix)),
+    );
+  }
+
+  deleteFile(path: string): ResultAsync<void, FileSystemError> {
+    this.files.delete(this.resolvePath(path));
+    return okAsync(undefined);
   }
 
   snapshot(): Record<string, string> {
